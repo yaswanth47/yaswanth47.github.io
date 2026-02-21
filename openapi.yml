@@ -1,4 +1,5 @@
 openapi: 3.1.0
+swagger: 2.0
 externalDocs:
   url: https://www.google.com
   description: for external reference
