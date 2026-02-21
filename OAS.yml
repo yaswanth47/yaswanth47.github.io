@@ -1,0 +1,376 @@
+openapi: 3.1.0
+externalDocs:
+  url: https://www.google.com
+  description: for external reference
+info: 
+  title: Employee Management System
+  description: |
+    **Employee Management System** is an open source management system which can maintain the employee data and track their learnings related to upcoming emerging technologies, `For better carrier growth.`
+    ## Courses
+    - AI
+    - IoT
+    - Data Science
+  summary: Maintains the data related to employee
+  termsOfService: https://Google.com
+  contact: 
+    name: Tester
+    email: tester@test.com
+    url: https://facebook.com
+  license:
+    name: Google2.0
+    url: https://www.google.com/
+  version: 1.0.0    
+servers:
+  - url: https://mywebsite.dev.com/
+    description: this is dev environment
+  - url: https://mywebiste.it.com/
+    description: this is IT environment
+  - url: https://{dnsname}/{version}
+    description: this is dynamic environment
+    variables: 
+      dnsname:
+        default: test
+        description: this is dns name
+      version:
+        description: this is version
+        default: 1.0v
+tags:
+  - name: Employee
+    description: employee related api details
+  - name: Designations
+    description: designation related api details
+security:
+  - BasicAuth: []
+  - BearerAuth: []
+  - ApikeyAuth: []
+  - OauthAuthKey:
+    - ReadOnly
+    - WriteOnly
+    - AdminOnly
+  - OpenIdAuthKey:
+    - Read
+    - Write
+x-custom-tag:
+  comments: test
+  developers:
+      - name: tester
+        email: test@tester.com
+paths:
+    /employees/all:
+      get:
+        tags: 
+          - Employee
+        description: get api call to fetch all the employees
+        operationId: listAllEmployees
+        summary: Returns all the employees
+        responses:
+            "200":
+              description: it will fetch the details of all employees
+              content: 
+                application/json: 
+                  schema:
+                      $ref: '#/components/schemas/allEmployees'
+            "500":
+              $ref: "#/components/responses/InternalServerError"                
+    /employees:
+      get:
+        tags: 
+          - Employee
+        description: this api will generate the details of individual employee
+        summary: individual employee detail
+        operationId: fetchEmployeeByQueryParam
+        parameters:
+          - $ref: "#/components/parameters/queryEmployeeId"
+        responses:
+          "200":
+            description: | 
+              fetching the individual employee details
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    employee:
+                      oneOf:
+                        - $ref: '#/components/schemas/singleEmployeeResponse'
+                        - $ref: '#/components/schemas/allEmployees'
+          "500":
+            $ref: "#/components/responses/InternalServerError"       
+    /employees/{employeeId}:
+      get:
+        tags: 
+          - Employee
+        description: fetch the employee details
+        operationId: fetchEmployeeByPathParam
+        summary: employee details by using path variable
+        parameters:
+          - $ref: '#/components/parameters/pathEmployeeId'
+        responses:
+          "200":
+            description: testing api through the path param
+            content: 
+              application/json:      
+                schema:
+                  $ref: "#/components/schemas/singleEmployeeResponse"
+          "500":
+            $ref: "#/components/responses/InternalServerError"
+    /designations:
+      get:
+        tags: 
+          - Designations
+        description: this api will fetch all the designations
+        operationId: getAllDesignations
+        summary: api for all designations
+        responses:
+          "200":
+            description: fetches the details of designations
+            content:
+              application/json: 
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      designationId:
+                        type: integer
+                      designationName:
+                        type: string
+                      employee:
+                        $ref: '#/components/schemas/singleEmployeeResponse'
+          "500":
+            $ref: "#/components/responses/InternalServerError"
+        parameters:
+          - name: descriptionId
+            in: query
+            schema:
+              type: integer
+    /crudEmployee:
+      delete:
+        tags: 
+          - Employee
+        description: this api will delete employee
+        operationId: deleteEmployeeByQueryParam
+        summary: delete the employee
+        parameters:
+          - $ref: "#/components/parameters/queryEmployeeId"
+        responses:
+          "204":
+            description: successfully deleted the employee
+          "500":
+            $ref: "#/components/responses/InternalServerError"
+      post:
+        tags: 
+          - Employee
+        description: creates a new employee
+        operationId: createNewEmployee
+        summary: new employee created successfully
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        courseName:
+                          type: string
+                        duration:
+                          type: integer
+                        amount:
+                          type: number
+                  employee:
+                    type: object
+                    properties:
+                      employeeName:
+                        type: string                     
+        responses:
+            "200":
+              description: the employee is created
+              content:
+                application/json: 
+                  schema:
+                      type: object
+                      properties:
+                        courses:
+                          items:
+                            type: object
+                            properties:
+                              courseId:
+                                type: integer
+                              courseName:
+                                type: string
+                              duration:
+                                type: integer
+                        employee:
+                          $ref: '#/components/schemas/singleEmployeeResponse'
+              links:
+                getEmployeeById:
+                  description: |
+                    This api will provide the employeeId which will be used in the crudEmployee as queryParam
+                  operationId: fetchEmployeeByPathParam
+                  parameters:
+                    employeeId: "$response.body#/employeeId"
+
+            "500":
+              $ref: "#/components/responses/InternalServerError"           
+      put:
+        tags: 
+          - Employee
+        description: updates the course details for employee
+        operationId: updateEmployeeDetails
+        summary: put api call for course update
+        requestBody:
+          content:
+            application/json:
+              schema:
+                properties:
+                  employeeId:
+                    type: integer
+                  courses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        courseName:
+                          type: string
+                        duration:
+                          type: integer
+        responses:
+          "200":
+            description: successfully updated the details
+          "500":
+            $ref: "#/components/responses/InternalServerError"
+      get:
+        tags:
+          - Employee
+        description: crud related fetch the employee details
+        summary: to fetch the employee details
+        deprecated: true
+        parameters:
+          - description: fetch the employee details by queryParam
+            in: query
+            name: employeeId
+            schema:
+              type: integer
+        responses:
+          "200":
+            description: for testing api through crud
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/singleEmployeeResponse'
+          "500":
+            $ref: '#/components/responses/InternalServerError'
+      
+components:
+  parameters:
+    queryEmployeeId:
+      name: employeeId
+      in: query
+      schema: 
+          type: integer
+    pathEmployeeId:
+      name: employeeId
+      in: path
+      required: true
+      schema:
+        type: integer
+        properties:
+          employeeId:
+            type: integer
+  schemas:
+    singleEmployeeResponse:
+       type: object
+       properties:
+        employeeId:
+          type: integer
+        employeename:
+          type: string
+    createEmployeeSchema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        courseName:
+                          type: string
+                        duration:
+                          type: integer
+                        amount:
+                          type: number
+                  employee:
+                    type: object
+                    properties:
+                      employeeName:
+                        type: string 
+    testing:
+      allOf: 
+        - $ref: '#/components/schemas/singleEmployeeResponse'
+        - type: object
+          properties:
+            testerId:
+              type: string
+            testerName:
+              type: string
+    allEmployees:
+        type: array
+        items:
+          type: object
+          properties:
+              employeeId:
+                type: integer
+              employeename:
+                type: string
+  responses:
+    InternalServerError:
+      description: An internal server error please contact support team `employeemanagement@support.com` 
+  securitySchemes: 
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApikeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    OauthAuthKey:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: http://www.google.com
+          tokenUrl: http://www.facebook.com
+          scopes:
+            readOnly: ReadOnly access
+            writeOnly: WriteOnly access
+            admin: AdminOnly access
+    OpenIdAuthKey:
+      type: openIdConnect
+      openIdConnectUrl: https://www.google.com
+          
+
+        
+
+
+
+
+
+
+
+
+      
+
+          
+
+
+
+                
+
+              
